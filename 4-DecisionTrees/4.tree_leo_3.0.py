@@ -144,5 +144,5 @@ t2 = time.process_time() #time.clock()
 # print (myTree)
 print ('execute for ', t2-t1)
 
-import tree_web_example_plot
-tree_web_example_plot.main(myTree)
+import tree_plot_function
+tree_plot_function.main(myTree)
