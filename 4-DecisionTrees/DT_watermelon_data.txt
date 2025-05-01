@@ -1,0 +1,17 @@
+Green     Curled          DullSound      Clear           Sunken        HardSmooth    Yes
+Black     Curled          Muffled        Clear           Sunken        HardSmooth    Yes
+Black     Curled          DullSound      Clear           Sunken        HardSmooth    Yes
+Green     Curled          Muffled        Clear           Sunken        HardSmooth    Yes
+Whitish   Curled          DullSound      Clear           Sunken        HardSmooth    Yes
+Green     SlightlyCurled  DullSound      Clear           SlightlySunken SoftSticky   Yes
+Black     SlightlyCurled  DullSound      SlightlyBlurry  SlightlySunken SoftSticky   Yes
+Black     SlightlyCurled  DullSound      Clear           SlightlySunken HardSmooth   Yes
+Black     SlightlyCurled  Muffled        SlightlyBlurry  SlightlySunken HardSmooth   No
+Green     Firm            Crisp          Clear           Flat          SoftSticky    No
+Whitish   Firm            Crisp          Blurry          Flat          HardSmooth    No
+Whitish   Curled          DullSound      Blurry          Flat          SoftSticky    No
+Green     SlightlyCurled  DullSound      SlightlyBlurry  Sunken        HardSmooth    No
+Whitish   SlightlyCurled  Muffled        SlightlyBlurry  Sunken        HardSmooth    No
+Black     SlightlyCurled  DullSound      Clear           SlightlySunken SoftSticky   No
+Whitish   Curled          DullSound      Blurry          Flat          HardSmooth    No
+Green     Curled          Muffled        SlightlyBlurry  SlightlySunken HardSmooth   No

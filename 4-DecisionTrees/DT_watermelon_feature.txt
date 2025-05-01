@@ -1,0 +1,1 @@
+Color     Root            KnockSound     Texture         Navel         Touch         GoodMelon
