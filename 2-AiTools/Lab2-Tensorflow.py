@@ -2,7 +2,7 @@
 """
 Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
 Theory, symbol, and procedure are explained in the book. Major info can be found at www.AI-engineer.org.
-This script file is for implementing a DNN using TensorFlow and Keras.
+This script file is for implementing a DNN using TensorFlow.
 """
 
 # import tensorflow as tf
