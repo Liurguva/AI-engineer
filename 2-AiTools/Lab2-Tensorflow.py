@@ -55,23 +55,3 @@ with tf.Session() as session:
             session.run(minimization_op, feed_dict)
     pred00 = session.run([p_output], feed_dict={X: x_test.reshape(-1,784)})
     
-
-# # Keras
-# import tensorflow as tf
-# from tensorflow.keras.layers import Input, Dense
-# from keras.models import Model
-
-# l = tf.keras.layers
-
-# model = tf.keras.Sequential([
-#     l.Flatten(input_shape=(784,)),
-#     l.Dense(128, activation='relu'),
-#     l.Dense(128, activation='relu'),
-#     l.Dense(10, activation='softmax')
-# ])
-
-# model.compile(loss='categorical_crossentropy', optimizer='adam',metrics = ['accuracy'])
-
-# model.summary()
-
-# model.fit(x_train.reshape(-1,784),pd.get_dummies(y_train),nb_epoch=15,batch_size=128,verbose=1)
