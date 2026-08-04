@@ -81,4 +81,4 @@ The repository was reconstructed from earlier teaching files. Backup versions, c
 
 ## License
 
-No open-source license has been selected in this prepared version. Before making the repository public, the owner should add the license that matches the intended permissions for reuse, modification, and redistribution.
+MIT license added with one extra term. If you use this code in academic work, please cite the repository and the book.
