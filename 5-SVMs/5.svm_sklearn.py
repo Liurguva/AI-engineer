@@ -1,37 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at wwww.AI-engineer.org.
-This file shows the basic SVM implemented using functions from sklearn.
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example compares linear and RBF support vector classifiers.
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
 
-X = np.array([[-1, -1.5], [0, -1], [1, -0.5], [-0.5, 0], [1, -1], [1.5, 1], [1, 2], [0.5, 1.5], [2.5, 1.5], [2, 2]])
-y = np.array([1, 1, 1, 1, 1, 2, 2, 2, 2, 2])
-
+from sklearn.datasets import make_moons
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-SVCClf = SVC(kernel = 'linear',gamma = 'scale', shrinking = False,)
-SVCClf.fit(X, y)
-#SVCClf.predict([[-0.5,-0.8]])
 
+X, y = make_moons(n_samples=400, noise=0.2, random_state=10)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=10, stratify=y
+)
 
-# 0 = np.dot(X,SVCClf.coef_.T)+SVCClf.intercept_
-w = SVCClf.coef_[0]
-# Obtain arrays for ploting the fitting curve
-a = -w[0] / w[1]
-xx = np.linspace(X[:,0].min(), X[:,1].max(),100)
-yy = a * xx - (SVCClf.intercept_[0]) / w[1]
-
-fig = plt.figure()
-# ax = plt.axes() # (projection='3d')
-plt.scatter(X[:,0],X[:,1],marker='*',color='b')
-# ax.cla()
-# ax.scatter(X[:,0],X[:,1],'rd')
-plt.scatter(xx,yy,marker='.',color='r')
-# ax.show()
-
-
-
+for kernel in ("linear", "rbf"):
+    model = make_pipeline(StandardScaler(), SVC(kernel=kernel, C=1.0, gamma="scale"))
+    model.fit(X_train, y_train)
+    y_predicted = model.predict(X_test)
+    print(f"{kernel} kernel accuracy: {accuracy_score(y_test, y_predicted):.3f}")

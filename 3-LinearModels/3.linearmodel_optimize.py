@@ -1,50 +1,39 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at wwww.AI-engineer.org.
-Extended from linearmodel; it introduced optimization for loss/objective function, 
-which is needed when a closed-form solution is not available
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example solves linear regression by minimizing mean squared error.
 """
 
-# from sklearn import linear_model as LM
-import numpy as np
+
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+import numpy as np
+from scipy.optimize import minimize
 
-X_list = [[1.,1.],[1.,2.],[2.,2.],[2.,3.],[1.5,2.5],[2.,4.],[1.,3.],[3.,1.5]]
-X = np.array(X_list)
-Proj = np.array([1,2])
-y = np.dot(X,Proj)+3 
-y = y + np.random.rand(y.size)
+rng = np.random.default_rng(3)
+X = rng.uniform(-2.0, 2.0, size=(80, 2))
+y = 1.5 * X[:, 0] - 2.0 * X[:, 1] + 0.75 + rng.normal(0.0, 0.35, X.shape[0])
 
+objective = lambda parameters: np.mean((X @ parameters[:-1] + parameters[-1] - y) ** 2)
+result = minimize(objective, x0=np.zeros(X.shape[1] + 1), method="BFGS")
+if not result.success:
+    raise RuntimeError(result.message)
 
+weights = result.x[:-1]
+intercept = result.x[-1]
+y_fitted = X @ weights + intercept
+print("Estimated weights:", weights)
+print(f"Estimated intercept: {intercept:.3f}")
+print(f"Mean squared error: {objective(result.x):.4f}")
 
-def LinearRegression(X,y):
- 
-    X_bar = np.hstack((X,np.ones([X.shape[0],1]))) # I = 8 by J+1 = 3
-    W_hat = Optimize(X_bar,y)
-    return W_hat, X_bar
-
-def Optimize(X_bar,y):
-    from scipy.optimize import minimize
-    e = 1e-10 # Tolerance
-    fun = lambda W_hat : np.sum( (np.dot(X_bar,W_hat) - y)**2 )  # Linear regression cost function
-
-    W_hat0 = np.ones(X_bar.shape[1]) # Initial value
-    res = minimize(fun, W_hat0, method='SLSQP')
-    W_hat = res.x
-    return W_hat
-    print('The minimum value is：',res.fun)
-    print('The parameter for getting the minimum value is：',res.x)
-
-W_hat, X_bar= LinearRegression(X,y)
-W = W_hat[:-2]
-b = W_hat[-2:]
-
-y_fit = np.dot(X_bar,W_hat)
-
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-ax.scatter(X[:,0],X[:,1],y,'b*')
-ax.scatter(X[:,0],X[:,1],y_fit,'rd')
-# ax.show()
+figure = plt.figure()
+axis = figure.add_subplot(projection="3d")
+axis.scatter(X[:, 0], X[:, 1], y, label="observations")
+axis.scatter(X[:, 0], X[:, 1], y_fitted, label="optimized fit")
+axis.set_xlabel("x1")
+axis.set_ylabel("x2")
+axis.set_zlabel("y")
+axis.legend(frameon=False)
+plt.tight_layout()
+plt.show()

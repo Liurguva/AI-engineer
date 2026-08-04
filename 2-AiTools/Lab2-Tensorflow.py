@@ -1,57 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at www.AI-engineer.org.
-This script file is for implementing a DNN using TensorFlow.
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example demonstrates TensorFlow 2 tensors and automatic differentiation.
 """
 
-# import tensorflow as tf
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
-import numpy as np
-import pandas as pd
-from keras.datasets import mnist
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
 
+import tensorflow as tf
 
-# TensorFlow
-X = tf.placeholder(dtype=tf.float64)
-Y = tf.placeholder(dtype=tf.float64)
-num_hidden=128
+x = tf.constant([[1.0], [2.0], [3.0], [4.0]])
+y = tf.constant([[3.0], [5.0], [7.0], [9.0]])
+w = tf.Variable([[0.0]])
+b = tf.Variable([0.0])
+optimizer = tf.keras.optimizers.SGD(learning_rate=0.05)
 
-# Build a hidden layer
-W_hidden = tf.Variable(np.random.randn(784, num_hidden))
-b_hidden = tf.Variable(np.random.randn(num_hidden))
-p_hidden = tf.nn.sigmoid( tf.add(tf.matmul(X, W_hidden), b_hidden) )
+for _ in range(200):
+    with tf.GradientTape() as tape:
+        prediction = x @ w + b
+        loss = tf.reduce_mean((prediction - y) ** 2)
+    gradients = tape.gradient(loss, [w, b])
+    optimizer.apply_gradients(zip(gradients, [w, b]))
 
-# Build another hidden layer
-W_hidden2 = tf.Variable(np.random.randn(num_hidden, num_hidden))
-b_hidden2 = tf.Variable(np.random.randn(num_hidden))
-p_hidden2 = tf.nn.sigmoid( tf.add(tf.matmul(p_hidden, W_hidden2), b_hidden2) )
-
-# Build the output layer
-W_output = tf.Variable(np.random.randn(num_hidden, 10))
-b_output = tf.Variable(np.random.randn(10))
-p_output = tf.nn.softmax( tf.add(tf.matmul(p_hidden2, W_output), b_output) )
-
-loss = tf.reduce_mean(tf.losses.mean_squared_error(
-        labels=Y,predictions=p_output))
-accuracy=1-tf.sqrt(loss)
-minimization_op = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
-
-feed_dict = {
-    X: x_train.reshape(-1,784),
-    Y: pd.get_dummies(y_train)
-}
-with tf.Session() as session:
-    session.run(tf.global_variables_initializer())
-
-    for step in range(10000):
-        J_value = session.run(loss, feed_dict)
-        acc = session.run(accuracy, feed_dict)
-        if step % 100 == 0:
-            print("Step:", step, " Loss:", J_value," Accuracy:", acc)
-
-            session.run(minimization_op, feed_dict)
-    pred00 = session.run([p_output], feed_dict={X: x_test.reshape(-1,784)})
-    
+print(f"w = {float(w.numpy()[0, 0]):.3f}")
+print(f"b = {float(b.numpy()[0]):.3f}")
+print(f"loss = {float(loss.numpy()):.6f}")

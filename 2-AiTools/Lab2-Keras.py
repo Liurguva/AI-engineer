@@ -1,35 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at www.AI-engineer.org.
-This script file is for implementing a DNN using Keras.
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example trains a compact Keras classifier on the Iris dataset.
 """
 
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
+
 import numpy as np
-import pandas as pd
-from keras.datasets import mnist
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-
-
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Dense
-from keras.models import Model
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
-l = tf.keras.layers
+np.random.seed(1)
+tf.random.set_seed(1)
 
-model = tf.keras.Sequential([
-    l.Flatten(input_shape=(784,)),
-    l.Dense(128, activation='relu'),
-    l.Dense(128, activation='relu'),
-    l.Dense(10, activation='softmax')
-])
+X, y = load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=1, stratify=y
+)
+scaler = StandardScaler().fit(X_train)
+X_train = scaler.transform(X_train)
+X_test = scaler.transform(X_test)
 
-model.compile(loss='categorical_crossentropy', optimizer='adam',metrics = ['accuracy'])
-
-model.summary()
-
-model.fit(x_train.reshape(-1,784),pd.get_dummies(y_train),nb_epoch=15,batch_size=128,verbose=1)
-    
-    
+model = tf.keras.Sequential(
+    [
+        tf.keras.layers.Input(shape=(X_train.shape[1],)),
+        tf.keras.layers.Dense(12, activation="relu"),
+        tf.keras.layers.Dense(3, activation="softmax"),
+    ]
+)
+model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+model.fit(X_train, y_train, epochs=40, batch_size=16, verbose=0)
+loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
+print(f"Test accuracy: {accuracy:.3f}")

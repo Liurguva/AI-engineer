@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at wwww.AI-engineer.org.
-This file gives a simple example for using decision trees from sklearn.
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example trains and visualizes a scikit-learn decision tree.
 """
 
+
+import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
-from sklearn import tree
-import numpy as np
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 
-X_original, y_original = load_iris(return_X_y=True) # Load data from Dateset Iris
-Data_original = np.hstack((X_original,y_original.reshape(y_original.size,1))) # Merge the orignal data for shuffling
-Data = Data_original.copy() # Create data for shuffling
-# np.random.shuffle(Data) # Shuffle data
-X = Data[:,0:-1].copy() # Extract X from the Shuffled data, 150 X 4
-y = Data[:,-1].copy() # Extract y from the Suffled data, 150 X 1
+X, y = load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=9, stratify=y
+)
+classifier = DecisionTreeClassifier(max_depth=3, random_state=9)
+classifier.fit(X_train, y_train)
+y_predicted = classifier.predict(X_test)
+print(f"Test accuracy: {accuracy_score(y_test, y_predicted):.3f}")
 
-clf = tree.DecisionTreeClassifier()
-clf = clf.fit(X[0:-30], y[0:-30]) # Select Samples 1-120 for traning
-
-print(clf.score(X[-31:-1], y[-31:-1])) # Use the rest of samples, i.e., Sample 121-150, for testing
-tree.plot_tree(clf) 
+plot_tree(classifier, filled=True, feature_names=load_iris().feature_names, class_names=load_iris().target_names)
+plt.tight_layout()
+plt.show()

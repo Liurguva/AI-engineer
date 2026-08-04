@@ -1,50 +1,53 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at wwww.AI-engineer.org.
-This file shows the comparison of data-driven method against traditional engineering methods for an example given in Chapter 1.
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example compares physics-based, numerical, and data-driven solutions.
 """
+
 
 import matplotlib.pyplot as plt
 import numpy as np
-
-v_0 = 5
-t = 10
-delta_t = 0.5
-g = 9.81
-n_step = int(t/delta_t)
-t = np.linspace(0,10,n_step)
-
-# Physics-Based Method 1: Analytical solution
-x_ana = t * v_0 
-y_ana = g/(2*v_0**2) * x_ana**2 # 0.01962 = g/(2*v_0^2)
-plt.plot(x_ana,y_ana,'g',label='Analytical')
-
-# Physics-Based Method 1: Numerical solution
-x_num = np.zeros_like(x_ana)
-y_num = np.zeros_like(x_ana) # For storing y_i
-v_xi = v_0
-v_yi = 0
-for i in range(1,n_step ):
-    v_yi = v_yi + g*delta_t
-    x_num[i] = x_num[i-1] + v_xi * delta_t
-    y_num[i] = y_num[i-1] + v_yi * delta_t   
-plt.plot(x_num,y_num,'r-*',label='Numerical')
-
-# Data-Driven Method
-rdm = np.random.RandomState(1) # default_rng(12345) 
-noise = rdm.randint(-100,100, size=np.shape(y_ana))/10.0
-y_exp = y_ana + noise
-plt.plot(x_ana,y_exp,'ko',label='Experimental')
-from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
-# KernelRidge(alpha=1.0,kernel='poly') # kernel{‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’} 
-ml = LinearRegression()
-pf = PolynomialFeatures(degree=2)
-ml.fit(pf.fit_transform(x_ana.reshape(-1, 1)), y_exp.reshape(-1, 1)) # ml.coef_
-xx = pf.transform(x_ana.reshape(-1, 1))
-y_ml=ml.predict(xx) 
-plt.plot(x_ana,y_ml,'c*',label='Data-Driven')
-plt.xlabel("x")
-plt.ylabel("y")
+from sklearn.preprocessing import PolynomialFeatures
+
+rng = np.random.default_rng(1)
+initial_horizontal_velocity = 5.0
+gravity = 9.81
+final_time = 5.0
+time_step = 0.25
+time = np.arange(0.0, final_time + time_step, time_step)
+
+# Physics-based analytical solution for a horizontally launched object.
+x_analytical = initial_horizontal_velocity * time
+y_analytical = 0.5 * gravity * time**2
+
+# Physics-based numerical solution using explicit time integration.
+x_numerical = np.zeros_like(time)
+y_numerical = np.zeros_like(time)
+vertical_velocity = 0.0
+for i in range(1, time.size):
+    x_numerical[i] = x_numerical[i - 1] + initial_horizontal_velocity * time_step
+    y_numerical[i] = y_numerical[i - 1] + vertical_velocity * time_step
+    vertical_velocity = vertical_velocity + gravity * time_step
+
+# Data-driven solution fitted to noisy observations.
+noise = rng.normal(loc=0.0, scale=2.5, size=time.size)
+y_observed = y_analytical + noise
+polynomial = PolynomialFeatures(degree=2, include_bias=False)
+X_polynomial = polynomial.fit_transform(x_analytical.reshape(-1, 1))
+model = LinearRegression().fit(X_polynomial, y_observed)
+y_data_driven = model.predict(X_polynomial)
+
+print(f"Data-driven R^2: {model.score(X_polynomial, y_observed):.3f}")
+
+plt.plot(x_analytical, y_analytical, label="Analytical")
+plt.plot(x_numerical, y_numerical, "o--", label="Numerical")
+plt.scatter(x_analytical, y_observed, label="Observed data")
+plt.plot(x_analytical, y_data_driven, label="Data-driven")
+plt.xlabel("Horizontal distance, x")
+plt.ylabel("Vertical drop, y")
 plt.legend(frameon=False)
+plt.tight_layout()
+plt.show()

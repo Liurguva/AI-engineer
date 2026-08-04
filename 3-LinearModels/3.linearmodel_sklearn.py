@@ -1,34 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at wwww.AI-engineer.org.
-This file gives a simple example for using a linear model from sklearn.
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example applies scikit-learn linear regression.
 """
 
-from sklearn import linear_model as LM
+
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
-X_list = [[1.,1.],[1.,2.],[2.,2.],[2.,3.],[1.5,2.5],[2.,4.],[1.,3.],[3.,1.5]]
-X = np.array(X_list)
-Proj = np.array([1,2]) # Projection direction vector to get inclined plane in a 3D space
-# y = X@Proj # Use this equation or the following one.
-y = np.dot(X,Proj)+3  # Get the plane
-y = y + np.random.rand(y.size) # Use rand to add noise to the "meausured" data
-# regr = LM.LinearRegression(n_jobs=2)
-regr = LM.Lasso(alpha = 0.5)
-regr.fit(X,y)
-regr.predict(np.array([[3,5]]))
+rng = np.random.default_rng(7)
+X = rng.normal(size=(150, 3))
+y = X @ np.array([1.5, -2.0, 0.75]) + 4.0 + rng.normal(0.0, 0.4, X.shape[0])
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=7)
+model = LinearRegression().fit(X_train, y_train)
+y_predicted = model.predict(X_test)
 
-
-y_fit = np.dot(X,regr.coef_)+3
-
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-ax.scatter(X[:,0],X[:,1],y,'b*')
-ax.scatter(X[:,0],X[:,1],y_fit,'rd')
-# ax.show()
-
-
-
+print("Coefficients:", model.coef_)
+print(f"Intercept: {model.intercept_:.3f}")
+print(f"Test MSE: {mean_squared_error(y_test, y_predicted):.4f}")
+print(f"Test R^2: {r2_score(y_test, y_predicted):.3f}")

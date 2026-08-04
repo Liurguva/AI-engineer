@@ -1,83 +1,44 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at wwww.AI-engineer.org.
-This script file is for Gaussian Process.
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example implements Gaussian-process regression and compares it with scikit-learn.
 """
 
-import numpy as np
+
 import matplotlib.pyplot as plt
- 
-# Input
-def input_fun(X):
-    Coefs = np.array([6,-2.5,-2.4,-0.1,0.2,0.03])
-    y = np.sum(np.tensordot(X , np.ones(Coefs.size), axes=0 )** np.arange(Coefs.size) * Coefs,axis=1)
-    return y
+import numpy as np
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ConstantKernel, RBF, WhiteKernel
 
-X_true = np.linspace(-5,3.5,100)
-y_true = input_fun(X_true)
-plt.plot(X_true,y_true)
+rng = np.random.default_rng(15)
+X_train = np.linspace(0.0, 8.0, 12)[:, None]
+y_train = np.sin(X_train[:, 0]) + rng.normal(0.0, 0.12, X_train.shape[0])
+X_test = np.linspace(0.0, 8.0, 250)[:, None]
 
-X_train = np.array([-4,-1.5,0,1.5,2,2.5,2.7]) 
-y_train = input_fun(X_train)
-plt.figure(1)
-plt.scatter(X_train,y_train,color='m')
+length_scale = 1.0
+noise_variance = 0.12**2
+rbf = lambda A, B: np.exp(-0.5 * (A - B.T) ** 2 / length_scale**2)
+K = rbf(X_train, X_train) + noise_variance * np.eye(X_train.shape[0])
+K_cross = rbf(X_train, X_test)
+K_test = rbf(X_test, X_test)
+K_inverse = np.linalg.inv(K)
+mean_manual = K_cross.T @ K_inverse @ y_train
+covariance_manual = K_test - K_cross.T @ K_inverse @ K_cross
+std_manual = np.sqrt(np.maximum(np.diag(covariance_manual), 0.0))
 
-# Kernel
-def kernel(X1,X2):
-#    Sigma = np.exp(-(X1.reshape(X1.shape[0],-1) - X2)**2/2)
-    Sigma = np.empty((X1.shape[0],X2.shape[0]))
-    for i in range(X1.shape[0]):
-        for j in range(X2.shape[0]):
-            Sigma[i,j] = np.exp(-(X1[i]-X2[j])**2/2)
-    return Sigma
-def mean(X):
-    Mu = np.zeros(X.shape[0])#np.mean(X,axis=0)
-    return Mu
-    
-Sigma = kernel(X_train,X_train)
-Mu = mean(X_train)
+kernel = ConstantKernel(1.0) * RBF(1.0) + WhiteKernel(noise_level=noise_variance)
+model = GaussianProcessRegressor(kernel=kernel, random_state=15).fit(X_train, y_train)
+mean_sklearn, std_sklearn = model.predict(X_test, return_std=True)
+print("Fitted scikit-learn kernel:", model.kernel_)
 
-
-# Samping for showing the Gaussian samples
-Sigma_sampling = kernel(X_true,X_true)
-Mu_sampling = mean(X_true)
-for n_sampling in range(10):
-    y_sample = np.random.multivariate_normal(Mu_sampling,Sigma_sampling) #with smoothing (Sigma with kernel)
-    plt.figure(2)
-    plt.plot(X_true,y_sample)  
-    
-    y_sample = np.random.multivariate_normal(Mu_sampling,np.eye(Mu_sampling.shape[0])) #without smoothing (Sigma without kernel)
-    plt.figure(0)
-    plt.plot(X_true,y_sample) 
-
-
-# Prediction
-X_pred = X_true
-
-K_whole = kernel(np.hstack((X_train,X_pred)),np.hstack((X_train,X_pred))) # Sigma matrix for the combined Gaussian distribution of [X_train, X_pred]
-K = K_whole[0:X_train.shape[0],0:X_train.shape[0]]
-K_ast = K_whole[:X_train.shape[0],X_train.shape[0]:]
-K_ast_ast = K_whole[X_train.shape[0]:,X_train.shape[0]:]
-M = Mu
-M_ast = mean(X_pred)
-
-
-Mu_pred = M_ast + (  K_ast.T @ np.linalg.inv(K) @ (y_train - Mu).reshape((y_train.size,1))  ).reshape(M_ast.size)
-Sigma_pred = K_ast_ast - K_ast.T @ np.linalg.inv(K) @ K_ast
-
-plt.figure(3)
-for n_sampling_pred in range(10):
-    y_pred = np.random.multivariate_normal(Mu_pred,Sigma_pred)
-    plt.plot(X_pred,y_pred) # Plot n (number of iterations) predicted curves
-
-
-plt.plot(X_pred,Mu_pred) # Predict average prediction
-sigma = Sigma_pred.diagonal()**0.5 # Correct
-plt.fill_between(X_pred,Mu_pred-2*sigma,Mu_pred+2*sigma,color='yellow',alpha=0.9) # Show the region with mu +- sigma (68%) (2*sigma is 95%, 3*sigma is 99.7%)
-
-plt.scatter(X_train,y_train,color='k')
-plt.savefig('gp.png', dpi=600)
-
+plt.scatter(X_train[:, 0], y_train, label="observations")
+plt.plot(X_test[:, 0], mean_manual, label="manual GP mean")
+plt.fill_between(X_test[:, 0], mean_manual - 1.96 * std_manual, mean_manual + 1.96 * std_manual, alpha=0.2)
+plt.plot(X_test[:, 0], mean_sklearn, "--", label="scikit-learn GP mean")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend(frameon=False)
+plt.tight_layout()
 plt.show()
-

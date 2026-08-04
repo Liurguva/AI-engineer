@@ -1,0 +1,6 @@
+# Install these packages only for the chapters that use them.
+tensorflow>=2.21
+# Install PyTorch and torchvision using the command recommended for your OS/GPU at pytorch.org.
+pgmpy>=1.0
+gymnasium[classic-control]>=1.0
+xgboost>=2.0

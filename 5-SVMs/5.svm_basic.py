@@ -1,55 +1,43 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at wwww.AI-engineer.org.
-This file shows the basic SVM implemented using the original formulation.
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example solves a hard-margin linear SVM in the primal form.
 """
 
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.optimize import minimize
 
-X = np.array([[-1, -1.5], [0, -1], [1, -0.5], [-0.5, 0], [1, -1], [1.5, 1], [1, 2], [0.5, 1.5], [2.5, 1.5], [2, 2]])
-y = np.array([1, 1, 1, 1, 1, -1, -1, -1, -1, -1])
+X = np.array([[-1.0, -1.5], [0.0, -1.0], [1.0, -0.5], [-0.5, 0.0], [1.0, -1.0], [1.5, 1.0], [1.0, 2.0], [0.5, 1.5], [2.5, 1.5], [2.0, 2.0]])
+y = np.array([-1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
+objective = lambda parameters: 0.5 * np.dot(parameters[:-1], parameters[:-1])
+constraints = {"type": "ineq", "fun": lambda parameters: y * (X @ parameters[:-1] + parameters[-1]) - 1.0}
+result = minimize(objective, x0=np.zeros(X.shape[1] + 1), method="SLSQP", constraints=constraints)
+if not result.success:
+    raise RuntimeError(result.message)
 
-# Prepare optimizer function
-tole = 1e-8 # Tolerance
-fun = lambda wb: wb[:-1]@wb[:-1] # Optimize that work with lambda function with one argument (general function can have more arguments)
-# Add equality constraints
-cons = (#{'type': 'eq', 'fun': lambda alpha: alpha @ y}, # func =0
-        {'type': 'ineq', 'fun': lambda wb: y*(X@wb[:-1]+wb[-1])-1} # func > 0
-        )
-# Optimization
-w0 = np.ones(X.shape[1])/X.shape[1] # Initial value; alpha0 must satisfy the above constraints
-b0 = 1
-wb0 = np.append(w0,b0)
-res = minimize(fun, wb0, method='SLSQP',constraints=cons,tol=tole) # SLSQP  BFGS
-wb = res.x 
-print(wb)
+weights = result.x[:-1]
+intercept = result.x[-1]
+margin_values = y * (X @ weights + intercept)
+support_vectors = X[np.isclose(margin_values, 1.0, atol=1e-4)]
+print("Weights:", weights)
+print(f"Intercept: {intercept:.3f}")
+print("Support vectors:\n", support_vectors)
 
+x_line = np.linspace(X[:, 0].min() - 0.5, X[:, 0].max() + 0.5, 200)
+y_line = -(weights[0] * x_line + intercept) / weights[1]
+y_margin_positive = -(weights[0] * x_line + intercept - 1.0) / weights[1]
+y_margin_negative = -(weights[0] * x_line + intercept + 1.0) / weights[1]
 
-w_star = wb[:-1]
-b_star = wb[-1] # [0] gives out the first support vector
-print('The parameter for getting the minimum loss is:',w_star,b_star)
-
-# Generate data for the SVM separation curve  
-a = -w_star[0] / w_star[1]
-xx = np.linspace(X[:,0].min(), X[:,0].max(),100)
-yy = a * xx + (b_star) #/ w_star[1]
-
-fig = plt.figure()
-# Plot original data with label
-plt.scatter(X[:,0],X[:,1],marker='o',color='b')
-for X1,y1 in zip(X,y):
-    label = "{:.2f}".format(y1)
-    plt.annotate(label, # this is the text
-                 (X1[0],X1[1]), # these are the coordinates to position the label
-                 textcoords="offset points", # how to position the text
-                 xytext=(0,10), # distance from text to points (x,y)
-                 ha='center') # horizontal alignment can be left, right or center
-# Plot the SVM separation curve
-plt.scatter(xx,yy,marker='.',color='r')
-
-
-
+plt.scatter(X[:, 0], X[:, 1], c=y)
+plt.scatter(support_vectors[:, 0], support_vectors[:, 1], facecolors="none", edgecolors="black", s=140, label="support vectors")
+plt.plot(x_line, y_line, label="decision boundary")
+plt.plot(x_line, y_margin_positive, "--")
+plt.plot(x_line, y_margin_negative, "--")
+plt.legend(frameon=False)
+plt.tight_layout()
+plt.show()

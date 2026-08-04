@@ -1,35 +1,38 @@
 # -*- coding: utf-8 -*-
 """
-Created by Leo Liu for the book "Artificial Intelligence for Engineers: Basics and Implementations".
-Theory, symbol, and procedure are explained in the book. Major info can be found at wwww.AI-engineer.org.
-This is the basic linear model, in which analytical solution is adopted directly. 
+Created for the book "Artificial Intelligence for Engineers" by Zhen (Leo) Liu.
+The related theory, notation, and procedure are explained in the book.
+Additional information is available at https://www.ai-engineer.org/.
+This example solves linear regression with the normal equation.
 """
 
-# from sklearn import linear_model as LM
-import numpy as np
+
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+import numpy as np
 
-X_list = [[1.,1.],[1.,2.],[2.,2.],[2.,3.],[1.5,2.5],[2.,4.],[1.,3.],[3.,1.5]]
-X = np.array(X_list)
-Proj = np.array([1,2])
-y = np.dot(X,Proj)+3 
-y = y + np.random.rand(y.size)
+rng = np.random.default_rng(2)
+X = np.array([[1.0, 1.0], [1.0, 2.0], [2.0, 2.0], [2.0, 3.0], [1.5, 2.5], [2.0, 4.0], [1.0, 3.0], [3.0, 1.5]])
+true_weights = np.array([1.0, 2.0])
+true_intercept = 3.0
+y = X @ true_weights + true_intercept + rng.normal(0.0, 0.25, X.shape[0])
 
-def LinearRegression(X,y):
- 
-    X_bar = np.hstack((X,np.ones([X.shape[0],1]))) # I = 8 by J+1 = 3
-    W_hat = np.linalg.inv(X_bar.T @ X_bar) @ X_bar.T @ y # J+1 (=3) by 1 
-    return W_hat, X_bar
+X_augmented = np.column_stack((X, np.ones(X.shape[0])))
+parameters = np.linalg.pinv(X_augmented) @ y
+weights = parameters[:-1]
+intercept = parameters[-1]
+y_fitted = X @ weights + intercept
 
-W_hat, X_bar= LinearRegression(X,y)
-W = W_hat[:-2]
-b = W_hat[-2:]
+print("Estimated weights:", weights)
+print(f"Estimated intercept: {intercept:.3f}")
+print(f"Mean squared error: {np.mean((y - y_fitted) ** 2):.4f}")
 
-y_fit = np.dot(X_bar,W_hat)
-
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-ax.scatter(X[:,0],X[:,1],y,'b*')
-ax.scatter(X[:,0],X[:,1],y_fit,'rd')
-# ax.show()
+figure = plt.figure()
+axis = figure.add_subplot(projection="3d")
+axis.scatter(X[:, 0], X[:, 1], y, label="observations")
+axis.scatter(X[:, 0], X[:, 1], y_fitted, label="fitted values")
+axis.set_xlabel("x1")
+axis.set_ylabel("x2")
+axis.set_zlabel("y")
+axis.legend(frameon=False)
+plt.tight_layout()
+plt.show()

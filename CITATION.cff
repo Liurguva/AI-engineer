@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "Please cite the book and this software repository when you use these examples."
+title: "AI-engineer: Code examples for Artificial Intelligence for Engineers"
+type: software
+version: 1.0.0
+authors:
+  - family-names: Liu
+    given-names: Zhen (Leo)
